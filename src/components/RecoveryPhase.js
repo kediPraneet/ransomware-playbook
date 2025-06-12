@@ -27,6 +27,7 @@ const RecoveryPhase = () => {
 
   const [visibleSteps, setVisibleSteps] = useState(1);
   const [skipToStep11, setSkipToStep11] = useState(false);
+  const [skipR5, setSkipR5] = useState(false);
 
   const revealNextStep = () => {
     if (visibleSteps < recoverySteps.length) {
@@ -50,37 +51,86 @@ const RecoveryPhase = () => {
       <h2 className="text-2xl font-extrabold text-yellow-400 mb-4">Recovery Phase</h2>
       <ul className="list-disc list-inside space-y-2">
       {!skipToStep11 ? (
-  recoverySteps.slice(0, visibleSteps).map((step, index) => (
-    <li
-      key={index}
-      className="bg-gray-700 p-2 rounded-md cursor-pointer transition duration-300 ease-in-out hover:shadow-lg hover:scale-105"
-      onClick={revealNextStep}
-    >
-      {step}
-      {index === 9 && ( // Step R10
-        <div className="mt-2">
-          <button
-            className="mr-2 px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-700"
-            onClick={(e) => {
-              e.stopPropagation();
-              setVisibleSteps(visibleSteps + 1);
-            }}
+  (skipR5
+    ? recoverySteps.filter((_, i) => i !== 4) // Remove R5 if skipping
+    : recoverySteps
+  )
+    .slice(0, visibleSteps)
+    .map((step, index, arr) => {
+      // Special rendering for Step R4 (index 3 if not skipping, 3 if skipping)
+      const realIndex = skipR5 ? (index >= 4 ? index + 1 : index) : index;
+      if (realIndex === 3) {
+        const before = step.split("Step R6")[0];
+        const after = step.split("Step R6")[1];
+        return (
+          <li
+            key={realIndex}
+            className="bg-gray-700 p-2 rounded-md cursor-pointer transition duration-300 ease-in-out hover:shadow-lg hover:scale-105"
+            onClick={revealNextStep}
           >
-            Continue with next step
-          </button>
-          <button
-            className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-700"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleSkipToStep11();
-            }}
-          >
-            Skip to Step R11
-          </button>
-        </div>
-      )}
-    </li>
-  ))
+            {before}
+            <button
+              type="button"
+              onClick={e => {
+                e.stopPropagation();
+                setSkipR5(true);
+                setVisibleSteps(6); // Show up to R6 (index 5)
+              }}
+              style={{
+                background: '#2563eb',
+                border: 'none',
+                color: '#fff',
+                cursor: 'pointer',
+                padding: '2px 10px',
+                font: 'inherit',
+                borderRadius: '4px',
+                fontWeight: 'bold',
+                margin: '0 2px',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
+                textDecoration: 'none',
+                outline: 'none',
+              }}
+              className="focus:outline-none"
+            >
+              Step R6
+            </button>
+            {after}
+          </li>
+        );
+      }
+      // Default rendering for all other steps
+      return (
+        <li
+          key={realIndex}
+          className="bg-gray-700 p-2 rounded-md cursor-pointer transition duration-300 ease-in-out hover:shadow-lg hover:scale-105"
+          onClick={revealNextStep}
+        >
+          {step}
+          {realIndex === 9 && ( // Step R10
+            <div className="mt-2">
+              <button
+                className="mr-2 px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-700"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setVisibleSteps(visibleSteps + 1);
+                }}
+              >
+                Continue with next step
+              </button>
+              <button
+                className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-700"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSkipToStep11();
+                }}
+              >
+                Skip to Step R11
+              </button>
+            </div>
+          )}
+        </li>
+      );
+    })
 ) : (
   recoverySteps.slice(13, visibleSteps).map((step, index) => (
     <li
